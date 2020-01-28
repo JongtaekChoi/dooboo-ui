@@ -1,28 +1,97 @@
-import React, { ReactElement } from 'react';
+import { Image, ImageSourcePropType, TextStyle, TouchableOpacity } from 'react-native';
+import React, { ReactElement, useState } from 'react';
 
-import { ImageSourcePropType } from 'react-native';
 import styled from 'styled-components/native';
 
+const defaultSize = 50;
+const defaultOffset = 15;
+
 const Container = styled.View`
-  flex: 1;
-  background-color: transparent;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
+  position: absolute;
+  right: ${defaultOffset}px;
+  bottom: ${defaultOffset}px;
 `;
 
-interface FABProps {
-  width: number;
-  height: number;
-  borderRadius: number;
+const ItemContainer = styled.View`
+  flex-direction: row;
+  height: ${defaultSize}px;
+`;
+
+const Description = styled.Text`
+  margin-right: 30px;
+`;
+
+interface ButtonStyle {
+  width?: number;
+  height?: number;
+  borderRadius?: number;
+  backgroundColor?: string;
+}
+
+interface LayoutStyle {
+  right?: number;
+  bottom?: number;
+}
+
+interface ActionItemProps {
+  key?: string;
   src: ImageSourcePropType;
   text?: string;
-  action(): void;
-  subAction?: FABProps[];
+  action?(): void;
+  buttonStyle?: ButtonStyle;
+  textStyle?: TextStyle;
+}
+
+interface FABProps extends ActionItemProps{
+  subItemPropsList?: FABProps[];
+  expandedBackgroundColor?: string;
+  layoutStyle?: LayoutStyle;
+}
+
+function ActionItem(props: ActionItemProps): ReactElement {
+  const { buttonStyle: customStyle, textStyle, src, action, text } = props;
+  const buttonStyle = {
+    width: defaultSize,
+    height: defaultSize,
+    borderRadius: defaultSize / 2,
+    shadowRadius: 1,
+    ...customStyle,
+  };
+  return <ItemContainer style={{}}>
+    {
+      text ? <Description style={textStyle}>{text}</Description> : null
+    }
+    <TouchableOpacity style={buttonStyle} onPress={action}>
+      <Image style={buttonStyle} source={src}/>
+    </TouchableOpacity>
+  </ItemContainer>;
 }
 
 function floatingActionButton(props: FABProps): ReactElement {
-  return <Container></Container>;
+  const { layoutStyle, buttonStyle, textStyle, key, src, action, text, subItemPropsList = [] } = props;
+  const [isExpanded, setExpanded] = useState(false);
+  return <Container style={layoutStyle}>
+    {
+      isExpanded ? subItemPropsList.map((subItemProps: ActionItemProps): ReactElement => {
+        const mergedProps = { buttonStyle, textStyle, ...subItemProps };
+        return <ActionItem key={subItemProps.key} {...mergedProps} />;
+      }) : null
+    }
+    <ActionItem
+      key={key}
+      src={src}
+      text={text}
+      buttonStyle={buttonStyle}
+      textStyle={textStyle}
+      action={(): void => {
+        if (action) {
+          action();
+        }
+        if (subItemPropsList.length > 0) {
+          setExpanded(!isExpanded);
+        }
+      }} />
+  </Container>;
 }
 
 export default floatingActionButton;
