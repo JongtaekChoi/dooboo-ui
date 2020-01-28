@@ -2,6 +2,7 @@ import './Accordian.stories';
 import './Button.stories';
 import './ButtonGroup.stories';
 import './EditText.stories';
+import './FAB.stories';
 import './LoadingIndicator.stories';
 import './SearchInput.stories';
 import './Snackbar.stories';
