@@ -21,19 +21,19 @@ const Description = styled.Text`
   margin-right: 30px;
 `;
 
-interface ButtonStyle {
+export interface ButtonStyle {
   width?: number;
   height?: number;
   borderRadius?: number;
   backgroundColor?: string;
 }
 
-interface LayoutStyle {
+export interface LayoutStyle {
   right?: number;
   bottom?: number;
 }
 
-interface ActionItemProps {
+export interface ActionItemProps {
   key?: string;
   src: ImageSourcePropType;
   text?: string;
