@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`[Fab] render renders without crashing 1`] = `
+<View
+  style={
+    Object {
+      "flex": 1,
+    }
+  }
+>
+  <View
+    style={
+      Array [
+        Object {
+          "bottom": 15,
+          "position": "absolute",
+          "right": 15,
+        },
+      ]
+    }
+  >
+    <View
+      style={
+        Array [
+          Object {
+            "flexDirection": "row",
+            "height": 50,
+          },
+          Object {},
+        ]
+      }
+    >
+      <View
+        accessible={true}
+        focusable={true}
+        isTVSelectable={true}
+        onClick={[Function]}
+        onResponderGrant={[Function]}
+        onResponderMove={[Function]}
+        onResponderRelease={[Function]}
+        onResponderTerminate={[Function]}
+        onResponderTerminationRequest={[Function]}
+        onStartShouldSetResponder={[Function]}
+        style={
+          Object {
+            "borderRadius": 25,
+            "height": 50,
+            "opacity": 1,
+            "shadowRadius": 1,
+            "width": 50,
+          }
+        }
+      >
+        <Image
+          source={
+            Object {
+              "testUri": "../../../icons/ic_edit.png",
+            }
+          }
+          style={
+            Object {
+              "borderRadius": 25,
+              "height": 50,
+              "shadowRadius": 1,
+              "width": 50,
+            }
+          }
+        />
+      </View>
+    </View>
+  </View>
+</View>
+`;

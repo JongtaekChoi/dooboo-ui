@@ -42,18 +42,20 @@ interface ActionItemProps {
   textStyle?: TextStyle;
 }
 
-interface FABProps extends ActionItemProps{
+export interface FABProps extends ActionItemProps{
   subItemPropsList?: FABProps[];
   expandedBackgroundColor?: string;
   layoutStyle?: LayoutStyle;
 }
 
 function ActionItem(props: ActionItemProps): ReactElement {
-  const { buttonStyle: customStyle, textStyle, src, action, text } = props;
+  const { buttonStyle: customStyle = {}, textStyle, src, action, text } = props;
+  const { width = defaultSize, height = defaultSize } = customStyle;
+  const borderRadius = Math.min(width, height) / 2;
   const buttonStyle = {
-    width: defaultSize,
-    height: defaultSize,
-    borderRadius: defaultSize / 2,
+    width,
+    height,
+    borderRadius,
     shadowRadius: 1,
     ...customStyle,
   };
@@ -67,7 +69,7 @@ function ActionItem(props: ActionItemProps): ReactElement {
   </ItemContainer>;
 }
 
-function floatingActionButton(props: FABProps): ReactElement {
+function Fab(props: FABProps): ReactElement {
   const { layoutStyle, buttonStyle, textStyle, key, src, action, text, subItemPropsList = [] } = props;
   const [isExpanded, setExpanded] = useState(false);
   return <Container style={layoutStyle}>
@@ -94,4 +96,4 @@ function floatingActionButton(props: FABProps): ReactElement {
   </Container>;
 }
 
-export default floatingActionButton;
+export default Fab;

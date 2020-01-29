@@ -1,21 +1,20 @@
-import 'react-native';
-
 import * as React from 'react';
+import Fab, { FABProps } from '../FAB';
 
-import { createTestElement, createTestProps } from '../../../../test/testUtils';
-
-import FAB from '../FAB';
-// Note: test renderer must be required after react-native.
+import { IC_EDIT } from '../Icons';
+import { View } from 'react-native';
 import renderer from 'react-test-renderer';
 
-let props: any;
+let props: FABProps;
 let component: React.ReactElement;
 // let testingLib: RenderResult;
 
-describe('[FAB] render', () => {
+describe('[Fab] render', () => {
   beforeEach(() => {
-    props = createTestProps();
-    component = createTestElement(<FAB {...props} />);
+    props = {
+      src: IC_EDIT,
+    };
+    component = <View style={{ flex: 1 }}><Fab {...props} /></View>;
   });
 
   it('renders without crashing', () => {
