@@ -7,5 +7,6 @@ export { Slider } from './Slider';
 export { RadioButton } from './RadioButton';
 export { Rating } from './Rating';
 export { SearchInput } from './SearchInput';
-export { SwitchToggle } from './SwitchToggle';
+import SwitchToggle from './SwitchToggle';
+export { SwitchToggle };
 export { Select, SelectItem } from './Select';
