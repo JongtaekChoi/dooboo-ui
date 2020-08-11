@@ -25,16 +25,16 @@ interface Props {
   duration?: number;
   type?: number;
   buttonText?: string;
-  backTextRight?: string;
-  backTextLeft?: string;
+  backTextEnd?: string;
+  backTextStart?: string;
   buttonTextStyle?: StyleProp<TextStyle>;
-  textRightStyle?: StyleProp<TextStyle>;
-  textLeftStyle?: StyleProp<TextStyle>;
+  textEndStyle?: StyleProp<TextStyle>;
+  textStartStyle?: StyleProp<TextStyle>;
   buttonStyle?: StyleProp<ViewStyle>;
   // limitation: https://github.com/DefinitelyTyped/DefinitelyTyped/issues/12202
   buttonContainerStyle?: StyleProp<ViewStyle> | any;
-  rightContainerStyle?: StyleProp<ViewStyle> | any;
-  leftContainerStyle?: StyleProp<ViewStyle> | any;
+  endContainerStyle?: StyleProp<ViewStyle> | any;
+  startContainerStyle?: StyleProp<ViewStyle> | any;
   RTL?: boolean;
 }
 
@@ -86,33 +86,33 @@ function SwitchToggle(props: Props): React.ReactElement {
     }
   }, [props.switchOn]);
 
-  const generateRightText = (): React.ReactElement => {
+  const generateEndText = (): React.ReactElement => {
     return (
-      <Animated.View style={props.rightContainerStyle}>
-        <Text style={props.textRightStyle}>{props.backTextRight}</Text>
+      <Animated.View style={props.endContainerStyle}>
+        <Text style={props.textEndStyle}>{props.backTextEnd}</Text>
       </Animated.View>
     );
   };
 
-  const generateLeftText = (): React.ReactElement => {
+  const generateStartText = (): React.ReactElement => {
     return (
-      <Animated.View style={props.leftContainerStyle}>
-        <Text style={props.textLeftStyle}>{props.backTextLeft}</Text>
+      <Animated.View style={props.startContainerStyle}>
+        <Text style={props.textStartStyle}>{props.backTextStart}</Text>
       </Animated.View>
     );
   };
 
-  const generateLeftIcon = (): React.ReactElement => {
+  const generateStartIcon = (): React.ReactElement => {
     return (
-      <View style={{ position: 'absolute', left: 5 }}>
+      <View style={{ position: 'absolute', start: 5 }}>
         {props.backgroundImageOn}
       </View>
     );
   };
 
-  const generateRightIcon = (): React.ReactElement => {
+  const generateEndIcon = (): React.ReactElement => {
     return (
-      <View style={{ position: 'absolute', right: 5 }}>
+      <View style={{ position: 'absolute', end: 5 }}>
         {props.backgroundImageOff}
       </View>
     );
@@ -139,8 +139,8 @@ function SwitchToggle(props: Props): React.ReactElement {
           },
         ]}
       >
-        {generateLeftText()}
-        {props.switchOn && generateLeftIcon()}
+        {generateStartText()}
+        {props.switchOn && generateStartIcon()}
         <Animated.View
           style={[
             props.circleStyle,
@@ -173,8 +173,8 @@ function SwitchToggle(props: Props): React.ReactElement {
             <Text style={props.buttonTextStyle}>{props.buttonText}</Text>
           </Animated.View>
         </Animated.View>
-        {generateRightText()}
-        {!props.switchOn && generateRightIcon()}
+        {generateEndText()}
+        {!props.switchOn && generateEndIcon()}
       </Animated.View>
     </TouchableOpacity>
   );
