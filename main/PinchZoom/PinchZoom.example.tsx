@@ -138,7 +138,7 @@ export function ImageSlider({ imageSources = images }:{ imageSources?: ImageSour
         nextImageTranslateX.setValue(0);
         prevImageTranslateX.setValue(0);
         setCurrentIndex(currentIndex + 1);
-        pinchZoom.current?.setValues({ scale: 1, translate: { x: 0, y: 0 } });
+        // pinchZoom.current?.setValues({ scale: 1, translate: { x: 0, y: 0 } });
       });
     } else if (movePrev && currentIndex > 0 && targetTranslate) {
       Animated.timing(targetTranslate, {
@@ -149,7 +149,7 @@ export function ImageSlider({ imageSources = images }:{ imageSources?: ImageSour
         nextImageTranslateX.setValue(0);
         prevImageTranslateX.setValue(0);
         setCurrentIndex(currentIndex - 1);
-        pinchZoom.current?.setValues({ scale: 1, translate: { x: 0, y: 0 } });
+        // pinchZoom.current?.setValues({ scale: 1, translate: { x: 0, y: 0 } });
       });
     } else if (animValues.nextTranslateX < 0 && targetTranslate) {
       Animated.timing(targetTranslate, {
@@ -157,7 +157,7 @@ export function ImageSlider({ imageSources = images }:{ imageSources?: ImageSour
         useNativeDriver: true,
         duration: 300,
       }).start(() => {
-        pinchZoom.current?.setValues({ translate: { x: (1 - animValues.scale) * WIDTH / 2, y: animValues.y } });
+        // pinchZoom.current?.setValues({ translate: { x: (1 - animValues.scale) * WIDTH / 2, y: animValues.y } });
       });
     } else if (animValues.prevTranslateX > 0 && targetTranslate) {
       Animated.timing(targetTranslate, {
@@ -165,7 +165,7 @@ export function ImageSlider({ imageSources = images }:{ imageSources?: ImageSour
         useNativeDriver: true,
         duration: 300,
       }).start(() => {
-        pinchZoom.current?.setValues({ translate: { x: (animValues.scale - 1) * WIDTH / 2, y: animValues.y } });
+        // pinchZoom.current?.setValues({ translate: { x: (animValues.scale - 1) * WIDTH / 2, y: animValues.y } });
       });
     }
   }, [currentIndex]);

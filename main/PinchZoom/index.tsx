@@ -18,6 +18,14 @@ type Props = PropsWithChildren <{
   onRelease?(): void,
 }>
 
+enum TransformState {
+  IDLE = 'idle',
+  GRANTED = 'granted',
+  SCALING = 'scaling',
+  TRANSLATION = 'translation',
+  RELEASED = 'released',
+}
+
 export interface PinchZoomRef {
   animatedValue: { scale: Animated.Value, translate: Animated.ValueXY },
   setValues(_:{ scale?: number, translate?: VectorType }): void,
@@ -37,23 +45,65 @@ function PinchZoom(props: Props, ref: Ref<PinchZoomRef>): ReactElement {
   const translateValue = useRef({ offset: new Vector(), current: new Vector() }).current;
   const scale = useRef(new Animated.Value(1)).current;
   const translate = useRef(new Animated.ValueXY(new Vector())).current;
-  const release = (): void => {
-    Animated.timing(scale, {
-      useNativeDriver: true,
-      toValue: 1,
-    }).start();
-    Animated.timing(translate, {
-      useNativeDriver: true,
-      toValue: new Vector(),
-    }).start();
-  };
-  const createPanResponder = (): PanResponderInstance => {
-    return PanResponder.create({
+  const transformState = useRef(TransformState.IDLE);
+
+  const [panResponder, setPanResponder] = useState<PanResponderInstance | undefined>();
+
+  useEffect(() => {
+    const id = translate.addListener(({ x, y }) => {
+      onTranslateChanged && onTranslateChanged({ x, y });
+      if (transformState.current === TransformState.RELEASED) {
+        const maxValue = { x: (scaleValue.current - 1) * layoutCenter.x, y: (scaleValue.current - 1) * layoutCenter.y };
+        if (Math.abs(x) > maxValue.x || Math.abs(y) > maxValue.y) {
+          translate.stopAnimation();
+          transformState.current = TransformState.IDLE;
+          onRelease && onRelease();
+        }
+      }
+      translateValue.current.set({ x, y });
+    });
+    return ():void => {
+      translate.removeListener(id);
+    };
+  }, [onTranslateChanged, onRelease]);
+
+  useEffect(() => {
+    if (!onScaleChanged) return;
+    const id = scale.addListener(({ value }) => {
+      scaleValue.current = value;
+      onScaleChanged && onScaleChanged(value);
+    });
+    return ():void => {
+      scale.removeListener(id);
+    };
+  }, [onScaleChanged]);
+
+  useEffect(() => {
+    const onPanResponderRelease = (_, gestureState): void => {
+      transformState.current = TransformState.RELEASED;
+      const touch2 = touches[1];
+      if (touch2.offset.x === 0 && touch2.offset.y === 0 &&
+         Math.abs(translateValue.current.x) < (scaleValue.current - 1) * layoutCenter.x) {
+        Animated.decay(translate, {
+          velocity: { x: gestureState.vx, y: gestureState.vy },
+          deceleration: 0.996,
+          useNativeDriver: true,
+        }).start(() => {
+          transformState.current = TransformState.IDLE;
+          onRelease && onRelease();
+        });
+      } else {
+        transformState.current = TransformState.IDLE;
+        onRelease && onRelease();
+      }
+    };
+    setPanResponder(PanResponder.create({
       onStartShouldSetPanResponder: /* istanbul ignore next */ () => true,
       onStartShouldSetPanResponderCapture: /* istanbul ignore next */ () => true,
       onMoveShouldSetPanResponder: /* istanbul ignore next */ () => true,
       onMoveShouldSetPanResponderCapture: /* istanbul ignore next */ () => true,
       onPanResponderGrant: () => {
+        transformState.current = TransformState.GRANTED;
         const [touch1, touch2] = touches;
         touch1.setOffset({ x: 0, y: 0 });
         touch2.setOffset({ x: 0, y: 0 });
@@ -65,6 +115,7 @@ function PinchZoom(props: Props, ref: Ref<PinchZoomRef>): ReactElement {
         if (nativeEvent.touches.length === 2) {
           const secondEvent = nativeEvent.touches[1];
           if (touch2.offset.x === 0 && touch2.offset.y === 0) {
+            transformState.current = TransformState.SCALING;
             touch1.setOffset({ x: nativeEvent.locationX, y: nativeEvent.locationY });
             touch2.setOffset({ x: secondEvent.locationX, y: secondEvent.locationY });
             targetPosition.set(
@@ -75,66 +126,40 @@ function PinchZoom(props: Props, ref: Ref<PinchZoomRef>): ReactElement {
                 translate: translateValue.offset,
               }),
             );
+          } else {
+            touch1.setCurrent(touch1.current.add({ x: nativeEvent.locationX, y: nativeEvent.locationY }).multiply(0.5));
+            touch2.setCurrent(touch2.current.add({ x: secondEvent.locationX, y: secondEvent.locationY }).multiply(0.5));
+            const newScale = Math.max(1,
+              scaleValue.offset * touch1.current.distance(touch2.current) / touch1.offset.distance(touch2.offset));
+            scale.setValue(newScale);
+            translate.setValue(getTranslate({
+              targetPosition,
+              layoutCenter,
+              scale: newScale,
+            }));
           }
-          touch1.setCurrent({ x: nativeEvent.locationX, y: nativeEvent.locationY });
-          touch2.setCurrent({ x: secondEvent.locationX, y: secondEvent.locationY });
-          scaleValue.current = scaleValue.offset *
-            touch1.current.distance(touch2.current) / touch1.offset.distance(touch2.offset);
-
-          scaleValue.current = Math.max(1, Math.sqrt(scaleValue.current * scaleValue.offset));
-          scale.setValue(scaleValue.current);
-          translateValue.current.set(getTranslate({
-            targetPosition,
-            layoutCenter,
-            scale: scaleValue.current,
-          }));
-          translate.setValue(translateValue.current);
         } else if (
-          touch2.offset.x === 0 && touch2.offset.y === 0 &&
+          transformState.current !== TransformState.SCALING &&
             nativeEvent.touches.length === 1
         ) {
+          transformState.current = TransformState.TRANSLATION;
           const maxValue = layoutCenter.multiply(scaleValue.current + 1);
-          translateValue.current = getClamppedVector({
+          translate.setValue(getClamppedVector({
             vector: translateValue.offset.add({ x: gestureState.dx, y: gestureState.dy }),
             max: maxValue,
             min: maxValue.multiply(-1),
-          });
-          translate.setValue(translateValue.current);
+          }));
         }
       },
-      onPanResponderRelease: () => {
-        onRelease && onRelease();
-      },
+      onPanResponderRelease,
+      onPanResponderTerminate: onPanResponderRelease,
       onPanResponderTerminationRequest: /* istanbul ignore next */ () => {
         return true;
       },
       onShouldBlockNativeResponder: /* istanbul ignore next */ () => {
         return blockNativeResponder;
       },
-    });
-  };
-
-  const [panResponder, setPanResponder] = useState<PanResponderInstance>(createPanResponder());
-
-  useEffect(() => {
-    if (!onTranslateChanged) return;
-    const id = translate.addListener(onTranslateChanged);
-    return ():void => {
-      translate.removeListener(id);
-    };
-  }, [onTranslateChanged]);
-
-  useEffect(() => {
-    if (!onScaleChanged) return;
-    const id = scale.addListener(({ value }) => onScaleChanged(value));
-    return ():void => {
-      scale.removeListener(id);
-    };
-  }, [onScaleChanged]);
-
-  useEffect(() => {
-    release();
-    setPanResponder(createPanResponder());
+    }));
   }, [blockNativeResponder, onRelease, onScaleChanged, onTranslateChanged]);
 
   const setValues = useCallback(({ scale, translate }:{ scale?: number, translate?: VectorType }) => {
@@ -145,13 +170,14 @@ function PinchZoom(props: Props, ref: Ref<PinchZoomRef>): ReactElement {
   useEffect(() => {
     scaleValue.offset = 1;
     translateValue.offset = new Vector();
+    scale.setValue(1);
+    translate.setValue({ x: 0, y: 0 });
   }, [children]);
 
   useImperativeHandle(ref, () => ({
     animatedValue: { scale, translate },
     setValues,
   }));
-
   return <Animated.View
     testID="PINCH_ZOOM_CONTAINER"
     onLayout={({ nativeEvent: { layout } }): void => {
