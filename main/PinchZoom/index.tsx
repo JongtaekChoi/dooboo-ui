@@ -1,7 +1,7 @@
 import { Animated, PanResponder, PanResponderInstance, TransformsStyle, ViewStyle } from 'react-native';
 import React, {
   PropsWithChildren, ReactElement, Ref, forwardRef,
-  useCallback, useEffect, useImperativeHandle, useRef, useState,
+  useEffect, useImperativeHandle, useRef, useState,
 } from 'react';
 import {
   TouchPosition, Vector, VectorType,

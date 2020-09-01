@@ -132,7 +132,7 @@ export function ImageSlider({ imageSources = images }:{ imageSources?: ImageSour
 
     if (moveNext && currentIndex < imageSources.length - 1 && targetTranslate) {
       Animated.timing(targetTranslate, {
-        toValue: { x: -WIDTH, y: animValues.y },
+        toValue: { x: -WIDTH * animValues.scale / 2, y: animValues.y },
         useNativeDriver: true,
         duration: 300,
       }).start(() => {
@@ -142,7 +142,7 @@ export function ImageSlider({ imageSources = images }:{ imageSources?: ImageSour
       });
     } else if (movePrev && currentIndex > 0 && targetTranslate) {
       Animated.timing(targetTranslate, {
-        toValue: { x: WIDTH, y: animValues.y },
+        toValue: { x: WIDTH * animValues.scale / 2, y: animValues.y },
         useNativeDriver: true,
         duration: 300,
       }).start(() => {
