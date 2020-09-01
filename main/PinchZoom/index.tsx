@@ -28,7 +28,6 @@ enum TransformState {
 
 export interface PinchZoomRef {
   animatedValue: { scale: Animated.Value, translate: Animated.ValueXY },
-  setValues(_:{ scale?: number, translate?: VectorType }): void,
 }
 
 function PinchZoom(props: Props, ref: Ref<PinchZoomRef>): ReactElement {
@@ -54,6 +53,7 @@ function PinchZoom(props: Props, ref: Ref<PinchZoomRef>): ReactElement {
       onTranslateChanged && onTranslateChanged({ x, y });
       if (transformState.current === TransformState.RELEASED) {
         const maxValue = { x: (scaleValue.current - 1) * layoutCenter.x, y: (scaleValue.current - 1) * layoutCenter.y };
+
         if (Math.abs(x) > maxValue.x || Math.abs(y) > maxValue.y) {
           translate.stopAnimation();
           transformState.current = TransformState.IDLE;
@@ -68,7 +68,6 @@ function PinchZoom(props: Props, ref: Ref<PinchZoomRef>): ReactElement {
   }, [onTranslateChanged, onRelease]);
 
   useEffect(() => {
-    if (!onScaleChanged) return;
     const id = scale.addListener(({ value }) => {
       scaleValue.current = value;
       onScaleChanged && onScaleChanged(value);
@@ -77,19 +76,19 @@ function PinchZoom(props: Props, ref: Ref<PinchZoomRef>): ReactElement {
       scale.removeListener(id);
     };
   }, [onScaleChanged]);
-
   useEffect(() => {
     const onPanResponderRelease = (_, gestureState): void => {
-      transformState.current = TransformState.RELEASED;
-      const touch2 = touches[1];
-      if (touch2.offset.x === 0 && touch2.offset.y === 0 &&
+      if (transformState.current === TransformState.TRANSLATION &&
          Math.abs(translateValue.current.x) < (scaleValue.current - 1) * layoutCenter.x) {
+        transformState.current = TransformState.RELEASED;
         Animated.decay(translate, {
           velocity: { x: gestureState.vx, y: gestureState.vy },
           deceleration: 0.996,
           useNativeDriver: true,
         }).start(() => {
-          transformState.current = TransformState.IDLE;
+          if (transformState.current === TransformState.RELEASED) {
+            transformState.current = TransformState.IDLE;
+          }
           onRelease && onRelease();
         });
       } else {
@@ -139,8 +138,10 @@ function PinchZoom(props: Props, ref: Ref<PinchZoomRef>): ReactElement {
             }));
           }
         } else if (
-          transformState.current !== TransformState.SCALING &&
-            nativeEvent.touches.length === 1
+          (
+            transformState.current === TransformState.GRANTED ||
+            transformState.current === TransformState.TRANSLATION
+          ) && nativeEvent.touches.length === 1
         ) {
           transformState.current = TransformState.TRANSLATION;
           const maxValue = layoutCenter.multiply(scaleValue.current + 1);
@@ -162,11 +163,6 @@ function PinchZoom(props: Props, ref: Ref<PinchZoomRef>): ReactElement {
     }));
   }, [blockNativeResponder, onRelease, onScaleChanged, onTranslateChanged]);
 
-  const setValues = useCallback(({ scale, translate }:{ scale?: number, translate?: VectorType }) => {
-    if (scale != null) { scaleValue.current = scale; }
-    if (translate != null) { translateValue.current = new Vector(translate); }
-  }, [scaleValue, translateValue]);
-
   useEffect(() => {
     scaleValue.offset = 1;
     translateValue.offset = new Vector();
@@ -176,7 +172,6 @@ function PinchZoom(props: Props, ref: Ref<PinchZoomRef>): ReactElement {
 
   useImperativeHandle(ref, () => ({
     animatedValue: { scale, translate },
-    setValues,
   }));
   return <Animated.View
     testID="PINCH_ZOOM_CONTAINER"

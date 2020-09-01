@@ -27,3 +27,9 @@ jest.mock('react-native/Libraries/Components/Touchable/TouchableHighlight.js', (
 
   return MockTouchable;
 });
+
+jest.mock('react-native/Libraries/Utilities/Platform', () => {
+  const Platform = jest.requireActual('react-native/Libraries/Utilities/Platform');
+
+  return { ...Platform, isTesting: true };
+});

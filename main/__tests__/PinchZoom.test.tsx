@@ -9,7 +9,7 @@ import {
 } from './data/capturedGesture';
 
 import { ImageSlider } from '../PinchZoom/PinchZoom.example';
-import { PanResponderCallbacks } from 'react-native';
+import { Animated, PanResponderCallbacks } from 'react-native';
 import renderer from 'react-test-renderer';
 
 const TEST_CONTAINER_WIDTH = 300;
@@ -84,33 +84,26 @@ describe('PinchZoom of ImageSlider', () => {
         .toBeCloseTo(zoomInPosition.y - TEST_CONTAINER_CENTER.y - translateY);
     });
 
-    it('should be moved by moveGesture when it zoomed in', () => {
+    it('should be moved by moveGesture and the scale not changed.', () => {
       const { transform } = pinchZoomContainer.props.style;
 
       const prevScale = transform.find(({ scale }) => scale != null).scale;
-      const prevTranslateX = transform.find(({ translateX }) => translateX != null).translateX;
-      const prevTranslateY = transform.find(({ translateY }) => translateY != null).translateY;
+      const decay = jest.spyOn(Animated, 'decay');
 
       act(() => {
         const callBacks = pinchZoomContainer.props.responderCallback;
         moveGesture.forEach(({ name, nativeEvent, gestureState }) => {
           callBacks[name] && callBacks[name]({ nativeEvent }, gestureState);
         });
+        jest.runTimersToTime(1000);
       });
 
       const { transform: changedTransform } = pinchZoomContainer.props.style;
 
       const scale = changedTransform.find(({ scale }) => scale != null).scale;
-      const translateX = changedTransform.find(({ translateX }) => translateX != null).translateX;
-      const translateY = changedTransform.find(({ translateY }) => translateY != null).translateY;
-
-      const moveGestureStateList = moveGesture.filter(({ name }) => name === 'onPanResponderMove')
-        .map(({ gestureState }) => gestureState);
-      const lastMoveGestureState = moveGestureStateList[moveGestureStateList.length - 1];
 
       expect(scale).toBeCloseTo(prevScale);
-      expect(translateX).toBeCloseTo(prevTranslateX + lastMoveGestureState.dx);
-      expect(translateY).toBeCloseTo(prevTranslateY + lastMoveGestureState.dy);
+      expect(decay).toHaveBeenCalled();
     });
 
     it('should zoom out by closeGesture', () => {
@@ -162,7 +155,8 @@ describe('PinchZoom of ImageSlider', () => {
       });
 
       const { transform } = pinchZoomContainer.props.style;
-      const scale = transform.find(({ scale }) => scale != null).scale;
+
+      const scale = transform.find(({ scale }) => scale != null)?.scale;
       const translateX = transform.find(({ translateX }) => translateX != null).translateX;
       const translateY = transform.find(({ translateY }) => translateY != null).translateY;
 

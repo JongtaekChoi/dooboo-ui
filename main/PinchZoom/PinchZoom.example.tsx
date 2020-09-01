@@ -129,6 +129,7 @@ export function ImageSlider({ imageSources = images }:{ imageSources?: ImageSour
     const moveNext = animValues.nextTranslateX < -WIDTH / 2;
     const movePrev = animValues.prevTranslateX > WIDTH / 2;
     const targetTranslate = pinchZoom.current?.animatedValue.translate;
+
     if (moveNext && currentIndex < imageSources.length - 1 && targetTranslate) {
       Animated.timing(targetTranslate, {
         toValue: { x: -WIDTH, y: animValues.y },
@@ -138,7 +139,6 @@ export function ImageSlider({ imageSources = images }:{ imageSources?: ImageSour
         nextImageTranslateX.setValue(0);
         prevImageTranslateX.setValue(0);
         setCurrentIndex(currentIndex + 1);
-        // pinchZoom.current?.setValues({ scale: 1, translate: { x: 0, y: 0 } });
       });
     } else if (movePrev && currentIndex > 0 && targetTranslate) {
       Animated.timing(targetTranslate, {
@@ -149,24 +149,19 @@ export function ImageSlider({ imageSources = images }:{ imageSources?: ImageSour
         nextImageTranslateX.setValue(0);
         prevImageTranslateX.setValue(0);
         setCurrentIndex(currentIndex - 1);
-        // pinchZoom.current?.setValues({ scale: 1, translate: { x: 0, y: 0 } });
       });
     } else if (animValues.nextTranslateX < 0 && targetTranslate) {
       Animated.timing(targetTranslate, {
         toValue: { x: (1 - animValues.scale) * WIDTH / 2, y: animValues.y },
         useNativeDriver: true,
         duration: 300,
-      }).start(() => {
-        // pinchZoom.current?.setValues({ translate: { x: (1 - animValues.scale) * WIDTH / 2, y: animValues.y } });
-      });
+      }).start();
     } else if (animValues.prevTranslateX > 0 && targetTranslate) {
       Animated.timing(targetTranslate, {
         toValue: { x: (animValues.scale - 1) * WIDTH / 2, y: animValues.y },
         useNativeDriver: true,
         duration: 300,
-      }).start(() => {
-        // pinchZoom.current?.setValues({ translate: { x: (animValues.scale - 1) * WIDTH / 2, y: animValues.y } });
-      });
+      }).start();
     }
   }, [currentIndex]);
   return <Container style={{ backgroundColor: '#000' }}>
